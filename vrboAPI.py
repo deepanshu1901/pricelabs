@@ -103,8 +103,6 @@ payload = {
 
 # response = requests.post(url, json=payload, headers=headers)
 # print(response.status_code)
-# with open ('opt.text', 'w') as f:
-#     f.write(str(response.headers))
 # print(response.text)
 # print(response.headers)
 
@@ -130,16 +128,12 @@ def main(destination="New Delhi",radius=-1, dateRange = None):
     #     print("File exists: ", filename)
     #     with open(filename, encoding='utf-8') as f:
     #         data = json.load(f)
-
     
     if True:
     
         response = requests.post(url, json=payload, headers=headers)
         data = response.json()
         
-        
-        
-
         listings=data['data']['propertySearch']["propertySearchListings"]
         for listing in listings :
             if(listing.get("cardLink") is not None):
@@ -159,7 +153,9 @@ def main(destination="New Delhi",radius=-1, dateRange = None):
         df=pd.DataFrame(dict)
         if radius != -1:
             df = df[df['distance'] <= radius]
-        df = df.sort_values(by='distance')
+
+        # keep only top 50 closest entries
+        df = df.sort_values(by='distance').head(50)
 
         # add a column to the dataframe with the current date
         df['date'] = str(checkInDate['year']) + '-' + str(checkInDate['month']) + '-' + str(checkInDate['day'])
@@ -199,4 +195,10 @@ def getDates(destination="New Delhi",radius=-1):
         
         main(destination=destination, radius=radius, dateRange=dateRange)
         print("Done with date: ", next_date)
-getDates()
+
+    df = pd.read_csv(RESULT_FILE)
+    return df.to_csv(index=False)
+
+if __name__ == "__main__":
+    # main()
+    getDates()
