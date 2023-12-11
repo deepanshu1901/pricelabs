@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException, Response
-from vrboAPI import main, getDates
+from vrboAPI import main, getDates, process_csv
 
 app = FastAPI()
 
@@ -34,7 +34,8 @@ def get_properties_filtered_by_distance(distance: float = Query(..., description
         "Content-Type": "text/csv",
     }
 
-    csv_content = getDates()
+    df = getDates()
+    csv_content = process_csv(df)
 
     # Return the CSV file as a Response
     return Response(content=csv_content, media_type="text/csv", headers=headers)

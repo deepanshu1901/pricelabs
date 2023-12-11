@@ -114,6 +114,7 @@ def dfToJson(df):
 def main(destination="New Delhi",radius=-1, dateRange = None):
 
     payload['variables']['criteria']['primary']['dateRange'] = dateRange
+    payload['variables']['criteria']['primary']['destination']['regionName'] = destination
 
     checkInDate = dateRange.get('checkInDate')
     checkOutDate = dateRange.get('checkOutDate')
@@ -122,24 +123,24 @@ def main(destination="New Delhi",radius=-1, dateRange = None):
     prices=[]
     distances=[]
 
-    # filename = str(checkInDate['year']) + '-' + str(checkInDate['month']) + '-' + str(checkInDate['day']) + '.json'
+    filename = str(checkInDate['year']) + '-' + str(checkInDate['month']) + '-' + str(checkInDate['day']) + '.json'
 
-    # if os.path.exists(filename):
-    #     print("File exists: ", filename)
-    #     with open(filename, encoding='utf-8') as f:
-    #         data = json.load(f)
+    if os.path.exists(filename):
+        print("File exists: ", filename)
+        with open(filename, encoding='utf-8') as f:
+            data = json.load(f)
     
-    if True:
+    # if True:
     
-        response = requests.post(url, json=payload, headers=headers)
-        data = response.json()
+    #     response = requests.post(url, json=payload, headers=headers)
+    #     data = response.json()
         
         listings=data['data']['propertySearch']["propertySearchListings"]
         for listing in listings :
             if(listing.get("cardLink") is not None):
                 links.append(listing["cardLink"]["resource"]["value"])
             if(listing.get("priceSection") is not None):
-                prices.append(listing["priceSection"]["priceSummary"]["options"][0]["displayPrice"]["formatted"])
+                prices.append(int(listing["priceSection"]["priceSummary"]["options"][0]["displayPrice"]["formatted"][1:]))
             if(listing.get("headingSection") is not None):
                 distance=listing["headingSection"]["featuredMessages"][0]["text"]
                 distance_match = re.search(r'\d+(\.\d+)?', str(distance))
@@ -167,7 +168,6 @@ def main(destination="New Delhi",radius=-1, dateRange = None):
 
         # write the dataframe to output.csv
         df.to_csv(RESULT_FILE, index=False)
-
         # return 
         return dfToJson(df)
 
@@ -197,7 +197,21 @@ def getDates(destination="New Delhi",radius=-1):
         print("Done with date: ", next_date)
 
     df = pd.read_csv(RESULT_FILE)
-    return df.to_csv(index=False)
+    return df
+
+def process_csv(df):
+    # Read the CSV file into a DataFrame
+    # df = pd.read_csv(RESULT_FILE)
+
+    df['price'] = pd.to_numeric(df['price'], errors='coerce')
+
+    # Convert the 'date' column to datetime format (if it's not already)
+    df['date'] = pd.to_datetime(df['date'])
+
+    # Group by 'link' and find the top 3 maximum 'price' values along with their corresponding 'date'
+    top_prices_df = df.groupby('link').apply(lambda group: group.nlargest(3, 'price')).reset_index(drop=True)
+
+    return top_prices_df.to_csv(index=False)
 
 if __name__ == "__main__":
     # main()
