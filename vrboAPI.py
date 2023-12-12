@@ -163,8 +163,10 @@ def main(destination="New Delhi",radius=-1, dateRange = None):
         print(df.head())
 
         # read output.csv if it exists, and append its data to the dataframe
-        df2 = pd.read_csv(RESULT_FILE)
-        df = df._append(df2)
+        if os.path.exists(RESULT_FILE):
+            df2 = pd.read_csv(RESULT_FILE)
+            os.remove(RESULT_FILE)        
+            df = df._append(df2)
 
         # write the dataframe to output.csv
         df.to_csv(RESULT_FILE, index=False)
@@ -172,11 +174,14 @@ def main(destination="New Delhi",radius=-1, dateRange = None):
         return dfToJson(df)
 
 
-def getDates(destination="New Delhi",radius=-1):
+def getPrices(destination="New Delhi",radius=-1):
     from datetime import datetime, timedelta
 
     # Get the current date
     current_date = datetime.now()
+
+    if os.path.exists(RESULT_FILE):
+            os.remove(RESULT_FILE)
 
     # Loop over the next 365 days
     for i in range(365):
@@ -199,8 +204,9 @@ def getDates(destination="New Delhi",radius=-1):
     df = pd.read_csv(RESULT_FILE)
     return df
 
-def process_csv(df):
+def get_top_prices(df):
     # Read the CSV file into a DataFrame
+
     # df = pd.read_csv(RESULT_FILE)
 
     df['price'] = pd.to_numeric(df['price'], errors='coerce')
@@ -215,4 +221,4 @@ def process_csv(df):
 
 if __name__ == "__main__":
     # main()
-    getDates()
+    getPrices()
