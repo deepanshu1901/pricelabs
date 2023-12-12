@@ -16,9 +16,9 @@ app = FastAPI()
 #         # If conversion fails, raise an HTTPException with a 422 Unprocessable Entity status code
 #         raise HTTPException(status_code=422, detail="Invalid distance parameter. Must be a valid float.")
 #     return main(radius=distance, destination=destination)
-@app.get("/top-price-for-property")
-def get_top_price_for_property(property_id: str = Query(..., description="Filter properties by distance")):
-    pass
+# @app.get("/top-price-for-property")
+# def get_top_price_for_property(property_id: str = Query(..., description="Filter properties by distance")):
+#     pass
 
 @app.get("/properties-by-date")
 def get_properties_filtered_by_distance(distance: float = Query(..., description="Filter properties by distance"), destination: str = Query(..., description="Destination")):
